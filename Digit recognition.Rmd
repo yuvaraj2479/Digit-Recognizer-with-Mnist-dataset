@@ -1,0 +1,131 @@
+---
+title: "DIGIT RECOGNIZER WITH MNIST DATASET"
+author: "AMAL THOMAS"
+date: "12/11/2021"
+output: html_document
+---
+
+
+**Digit Recognizer in R**
+
+## Introduction
+The MNIST dataset is an acronym that stands for the Modified National Institute of Standards and Technology dataset.
+
+It is a dataset of 60,000 small square 28×28 pixel grayscale images of handwritten single digits between 0 and 9.
+
+Using the Mnist Dataset for doing the Digit recognition. We have got the 'train.csv' and 'test.csv' files from the kaggle wedsite.
+In the 'train.csv' contains 785 columns and 42000 rows and the 'test.csv' contains 28000 rows and 784 columns.
+Here we using the Random Forest algorithm for the Digit recognition problem.
+
+
+
+## Table of Contents
+- 1. Data understanding
+- 2. Model building and prediction
+- 3. Conclusion
+
+## Data understanding
+
+As always, first I read in data and take a look at it. The `train.csv` has one digit label column and 784 columns with pixel color values that go from 0 to 255.
+
+```{r}
+rm(list = ls())
+
+#loading libraries
+library(randomForest)
+library(data.table)
+```
+
+```{r}
+#loading datasets
+train <- fread("C:/Users/yuvaraj/OneDrive/Documents/train.csv")
+test <- fread("C:/Users/yuvaraj/OneDrive/Documents/test.csv")
+```
+
+#check observation and variables
+```{r}
+##Rows and Columns
+dim(train)
+dim(test)
+
+```
+##Just only checcking the 10th observation , is it showing correct or not.
+```{r}
+m = matrix(unlist(train[10,-1]),nrow = 28,byrow = T)
+# Plot that matrix
+image(m,col=grey.colors(255))
+```
+
+
+
+## Model building and prediction
+#random forest algorithm
+```{r}
+#making RF model
+set.seed(123)
+train$label <- factor(train$label)
+rf_model <- randomForest(data = train, label ~ ., ntree = 20, do.trace = 1)
+```
+```{r}
+names(rf_model)
+```
+
+```{r include=FALSE}
+rf_model$predicted
+```
+
+#confusion matrix
+```{r}
+table(rf_model$predicted,train$label)
+```
+```{r}
+library(caret)
+confusionMatrix(rf_model$predicted,train$label)
+```
+
+##From the above code we got that the  prediction accuracy is 92%. So correctly predicted 92% and wrong prediction is 8%.
+
+```{r}
+print("random forest trained.")
+```
+
+```{r}
+#prediction
+pred <- predict(rf_model, newdata = test)
+
+
+
+```
+
+```{r include=FALSE}
+pred= as.data.frame(pred)
+pred
+```
+
+#to convert the dataframe
+```{r include=FALSE}
+df <- data.frame(test,pred)
+df
+```
+
+##check it 1 to 6 values for prediction
+
+```{r}
+rotate <- function(x) t(apply(x, 2, rev)) # reverses (rotates the matrix)
+
+# Plot a bunch of images
+
+par(mfrow=c(2,3))
+lapply(1:6, 
+       function(x) image(
+         rotate(matrix(unlist(test[x,]),nrow = 28,byrow = T)),
+         col=grey.colors(255),
+         xlab=pred[x,1]
+       )
+)
+par(mfrow=c(1,1)) # set plot options back to default
+
+```
+**conclusion**
+
+## As per the conclusion of the above problem , we got 92% accuracy in the trainig model .But in our test dataset doesnot contain response variable so couldnot make the accuracy. So we can conclude taht Random forest algorithm is giving better perfomance ,then we can use random forest algorithm for this kind of problems.
